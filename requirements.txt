@@ -1,0 +1,16 @@
+apify-client
+python-dotenv
+pandas
+numpy
+matplotlib
+seaborn
+wordcloud
+scikit-learn
+transformers
+torch
+gradio
+requests
+urllib3
+charset-normalizer
+idna
+pillow

@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+.env
+
+# Virtual environments
+.venv
+
+# Project-specific
+models/
+data/
+docs/
+*.xlsx
+*.csv
+
+# Reference
+reference/

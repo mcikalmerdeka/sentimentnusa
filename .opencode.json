@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "gradio": {
+      "type": "sse",
+      "url": "https://gradio-docs-mcp.hf.space/gradio_api/mcp/",
+      "headers": {}
+    },
+    "apify": {
+      "type": "sse",
+      "url": "https://mcp.apify.com/?tools=docs",
+      "headers": {}
+    }
+  }
+}

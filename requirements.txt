@@ -14,3 +14,4 @@ urllib3
 charset-normalizer
 idna
 pillow
+openpyxl

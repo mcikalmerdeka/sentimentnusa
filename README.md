@@ -1,22 +1,22 @@
-# 🎭 SentimentNusa
+# SentimentNusa
 
-**SentimentNusa** is a comprehensive social media sentiment analysis tool that scrapes, analyzes, and visualizes public opinion from **TikTok**, **Instagram**, and **X (Twitter)** comments. Built specifically for Indonesian language content using state-of-the-art NLP models.
+**SentimentNusa** is a social media sentiment analysis tool designed for Indonesian language content. It scrapes comments from TikTok and Instagram posts, analyzes sentiment using state-of-the-art NLP models, and provides rich visualizations of the results.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
 ![Gradio](https://img.shields.io/badge/Gradio-UI-orange.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-## ✨ Features
+## Features
 
-- 🔗 **Multi-Platform Support**: Analyze comments from TikTok, Instagram, and X (Twitter)
-- 🇮🇩 **Indonesian Language Optimized**: Uses `w11wo/indonesian-roberta-base-sentiment-classifier` for accurate sentiment detection
-- 🧹 **Smart Text Preprocessing**: Automatic cleaning, normalization, and slang translation
-- 📊 **Rich Visualizations**: Sentiment distribution charts, platform breakdowns, and word clouds
-- 🖥️ **User-Friendly Interface**: Interactive Gradio web UI for easy analysis
-- 💾 **Data Export**: Export results to Excel for further analysis
-- 🤖 **ML Training**: Train custom Naive Bayes and Random Forest classifiers
+- **Multi-Platform Support**: Analyze comments from TikTok and Instagram
+- **Indonesian Language Optimized**: Uses `w11wo/indonesian-roberta-base-sentiment-classifier` for accurate sentiment detection
+- **Smart Text Preprocessing**: Automatic cleaning, normalization, and slang translation
+- **Raw Data Persistence**: Automatically saves raw extraction data for future reference
+- **Rich Visualizations**: Sentiment distribution charts and word clouds
+- **User-Friendly Interface**: Interactive Gradio web UI
+- **Data Export**: Export results to Excel for further analysis
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -53,9 +53,15 @@
    pip install -r requirements.txt
    ```
 
-4. **Configure API Token**
+4. **Configure environment variables**
 
-   Edit the `.env` file and add your Apify token:
+   Copy `.env.example` to `.env` and add your Apify token:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit the `.env` file:
 
    ```env
    APIFY_TOKEN=your_apify_token_here
@@ -74,45 +80,41 @@
 
    Navigate to: http://localhost:7860
 
-## 📖 Usage Guide
+## Usage Guide
 
-### 🔍 Scraping & Analyzing Real Data
+### Scraping and Analyzing Real Data
 
-1. **TikTok**: Enter post URLs
+1. **Select Platform**: Choose either TikTok or Instagram from the platform selector
 
-   ```
-   https://www.tiktok.com/@username/video/1234567890
-   ```
+2. **Enter Post URLs**: Input one or more post URLs (comma-separated)
 
-2. **Instagram**: Enter post URLs
+   - **TikTok**: `https://www.tiktok.com/@username/video/1234567890`
+   - **Instagram**: `https://www.instagram.com/p/ABC123DEF/` or `https://www.instagram.com/reel/ABC123DEF/`
 
-   ```
-   https://www.instagram.com/p/ABC123DEF/
-   ```
+3. **Set Comments Limit**: Adjust the slider for number of comments to extract per post (10-500)
 
-3. **X (Twitter)**: Enter search keywords
+4. **Start Analysis**: Click the "Start Analysis" button
 
-   ```
-   #indonesia, mbg, pemilu2024
-   ```
+5. **View Results**: Review sentiment distribution, word clouds, and detailed data table
 
-4. Set the number of comments to extract per post
-5. Click **"🚀 Start Analysis"**
+6. **Export Data**: Download results to Excel using the "Download Results" button
 
-### 📊 Try Sample Data
+### Try Sample Data
 
-Use the **"📊 Try Sample"** tab to test the system with 25 pre-loaded sample comments covering positive, negative, and neutral sentiments across all platforms.
+Use the "Try Sample" tab to test the system with pre-loaded sample comments covering positive, negative, and neutral sentiments.
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 SentimentNusa/
 ├── app.py                      # Main Gradio application entry point
 ├── requirements.txt            # Python dependencies
 ├── .env                        # Environment variables (API tokens)
+├── .env.example               # Example environment file
 ├── .opencode.json             # MCP server configuration
 ├── models/                     # Downloaded Hugging Face models (~500MB)
-├── data/                       # Exported Excel files
+├── data/                       # Data directory
+│   └── raw/                   # Raw extraction data (JSON files)
 ├── src/
 │   ├── config/
 │   │   └── settings.py        # Configuration and constants
@@ -120,13 +122,13 @@ SentimentNusa/
 │   │   ├── scraper.py         # Apify integration for social media scraping
 │   │   ├── preprocessor.py    # Text cleaning and normalization
 │   │   ├── sentiment_analyzer.py  # Sentiment analysis using transformers
-│   │   └── visualizer.py      # Charts, graphs, and word clouds
+│   │   └── visualizer.py      # Charts and word clouds
 │   └── utils/
 │       └── helpers.py         # Utility functions
-└── reference/                  # Reference notebooks and documentation
+└── reference/                  # Reference documentation
 ```
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Component           | Technology                                                                                                                      |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -134,39 +136,32 @@ SentimentNusa/
 | **Scraping**        | [Apify](https://apify.com/) + [apify-client](https://pypi.org/project/apify-client/)                                            |
 | **ML/NLP**          | [Hugging Face Transformers](https://huggingface.co/docs/transformers/)                                                          |
 | **Sentiment Model** | [w11wo/indonesian-roberta-base-sentiment-classifier](https://huggingface.co/w11wo/indonesian-roberta-base-sentiment-classifier) |
-| **ML Training**     | [scikit-learn](https://scikit-learn.org/)                                                                                       |
 | **Visualization**   | [Matplotlib](https://matplotlib.org/) + [WordCloud](https://github.com/amueller/word_cloud)                                     |
 | **Data Processing** | [pandas](https://pandas.pydata.org/) + [NumPy](https://numpy.org/)                                                              |
 
-## 🧹 Text Preprocessing Pipeline
+## Text Preprocessing Pipeline
 
-1. **URL & Mention Removal**: Strips `http://...` and `@username`
+1. **URL and Mention Removal**: Strips `http://...` and `@username`
 2. **Case Normalization**: Converts to lowercase
 3. **Special Character Removal**: Removes emojis and non-alphabetic characters
-4. **Repeated Character Limiting**: Normalizes words like "bagusss" → "bagus"
+4. **Repeated Character Limiting**: Normalizes words like "bagusss" to "bagus"
 5. **Slang Normalization**: Translates Indonesian slang:
-   - `gk`, `ga`, `gak` → `tidak`
-   - `bgt`, `bgtt` → `banget`
-   - `dg`, `dgn` → `dengan`
+   - `gk`, `ga`, `gak` -> `tidak`
+   - `bgt`, `bgtt` -> `banget`
+   - `dg`, `dgn` -> `dengan`
    - And more...
 6. **Stopword Removal** (optional)
 
-## 📊 Output Visualizations
+## Raw Data Storage
 
-- **📈 Sentiment Distribution**: Bar chart showing counts of positive, negative, and neutral comments
-- **☁️ Word Clouds**: Separate word clouds for each sentiment category
-- **📱 Platform Breakdown**: Stacked bar chart showing sentiment by platform
-- **📋 Detailed Table**: Full results with original text, cleaned text, sentiment, and source
+Every scraping operation automatically saves the raw JSON data to `data/raw/` with timestamped filenames:
 
-## 🔧 Configuration
+- `tiktok_raw_20250410_143022.json`
+- `instagram_raw_20250410_143025.json`
 
-### Apify Actors Used
+This provides a complete backup of the original Apify response data for future reference, debugging, or reprocessing.
 
-| Platform    | Actor ID                          | Description                |
-| ----------- | --------------------------------- | -------------------------- |
-| TikTok      | `BDec00yAmCm1QbMEI`               | TikTok Comments Scraper    |
-| Instagram   | `apify/instagram-comment-scraper` | Instagram Comments Scraper |
-| X (Twitter) | `apify/twitter-scraper`           | X Search Scraper           |
+## Configuration
 
 ### Environment Variables
 
@@ -176,23 +171,40 @@ Create a `.env` file in the project root:
 # Required
 APIFY_TOKEN=your_apify_token_here
 
+# Apify Actor IDs (optional - uses defaults if not set)
+APIFY_TIKTOK_ACTOR=BDec00yAmCm1QbMEI
+APIFY_INSTAGRAM_ACTOR=SbK00X0JYCPblD2wp
+
 # Optional
 HUGGINGFACE_TOKEN=your_hf_token_here  # If you hit rate limits
 ```
 
-## 📝 Example Output
+### Apify Actors
+
+The application uses the following public Apify actors:
+
+| Platform  | Actor ID            | Description             |
+| --------- | ------------------- | ----------------------- |
+| TikTok    | `BDec00yAmCm1QbMEI` | TikTok Comments Scraper |
+| Instagram | `SbK00X0JYCPblD2wp` | Instagram Scraper       |
+
+These actor IDs can be customized via environment variables if needed.
+
+## Example Output
 
 ### Sentiment Distribution
 
 ```
-📊 Total Comments: 25
+Analysis Complete!
 
-📈 Sentiment Distribution:
-• Positive: 10 (40.0%)
-• Negative: 8 (32.0%)
-• Neutral: 7 (28.0%)
+Total Comments: 25
 
-🏆 Dominant Sentiment: positive
+Sentiment Distribution:
+- Positive: 10 (40.0%)
+- Negative: 8 (32.0%)
+- Neutral: 7 (28.0%)
+
+Dominant Sentiment: positive
 ```
 
 ### Sample Analysis Results
@@ -201,9 +213,9 @@ HUGGINGFACE_TOKEN=your_hf_token_here  # If you hit rate limits
 | ----------------------------- | ------------------------------ | --------- | --------- |
 | Bagus banget videonya!        | bagus banget videonya          | positive  | tiktok    |
 | Jelek banget, gak recommended | jelek banget tidak recommended | negative  | instagram |
-| Biasa aja sih                 | biasa saja                     | neutral   | x         |
+| Biasa aja sih                 | biasa saja                     | neutral   | tiktok    |
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Model Download Issues
 
@@ -213,21 +225,23 @@ If the model downloads to your system cache instead of the local `models/` folde
 2. Delete from system cache: `C:\Users\<YourName>\.cache\huggingface\hub\`
 3. Restart the application
 
-### HTTP Warnings
-
-The `Invalid HTTP request received` warnings are from the underlying Uvicorn server and don't affect functionality. They're typically caused by browser extensions or network scanning tools.
-
 ### Apify Rate Limits
 
 If you hit rate limits:
 
 1. Wait a few minutes before retrying
 2. Consider upgrading your Apify plan
-3. Reduce the `comments_per_post` value
+3. Reduce the comments per post value
 
-## 🤝 Contributing
+### Invalid Input Errors
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Ensure your URLs match the expected format:
+- TikTok URLs must contain `tiktok.com`
+- Instagram URLs must contain `instagram.com` or `instagr.am`
+
+## Contributing
+
+Contributions are welcome. Please feel free to submit a Pull Request.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -235,17 +249,17 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [w11wo](https://huggingface.co/w11wo) for the Indonesian RoBERTa sentiment model
 - [Apify](https://apify.com/) for social media scraping infrastructure
 - [Gradio](https://gradio.app/) for the intuitive web interface
 
-## 📬 Contact
+## Contact
 
 For questions or support, please open an issue on GitHub.
 

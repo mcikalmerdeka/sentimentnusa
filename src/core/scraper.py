@@ -69,8 +69,6 @@ class SocialMediaScraper:
         run_input = {
             "directUrls": post_urls,
             "resultsLimit": comments_per_post,
-            "isNewestComments": None,
-            "includeNestedComments": None,
         }
         
         actor_id = APIFY_ACTORS["instagram"]

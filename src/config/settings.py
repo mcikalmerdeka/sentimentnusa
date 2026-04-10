@@ -23,13 +23,13 @@ os.environ["HF_HOME"] = str(MODELS_DIR)
 APIFY_TOKEN = os.getenv("APIFY_TOKEN", "")
 
 # Apify Actor IDs for different platforms
-# These are public actors available on Apify Store
+# These are loaded from environment variables with defaults
 APIFY_ACTORS = {
-    "tiktok": "BDec00yAmCm1QbMEI",  # TikTok Comments Scraper
-    "instagram": "SbK00X0JYCPblD2wp",  # Instagram Comments Scraper
+    "tiktok": os.getenv("APIFY_TIKTOK_ACTOR", ""),
+    "instagram": os.getenv("APIFY_INSTAGRAM_ACTOR", ""),
 }
 
-# Scraping Configuration
+# Scraping Configuration (default values)
 DEFAULT_COMMENTS_PER_POST = 10
 DEFAULT_MAX_REPLIES = 3
 DEFAULT_RESULTS_PER_PAGE = 3

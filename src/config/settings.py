@@ -11,6 +11,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
 
+# Raw data directory for saving extraction results
+RAW_DATA_DIR = DATA_DIR / "raw"
+RAW_DATA_DIR.mkdir(exist_ok=True)
+
 # Models directory - where Hugging Face models will be stored locally
 MODELS_DIR = BASE_DIR / "models"
 MODELS_DIR.mkdir(exist_ok=True)

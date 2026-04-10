@@ -1,4 +1,7 @@
 """Scraper module for extracting comments from social media platforms."""
+import json
+from datetime import datetime
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 from apify_client import ApifyClient
 from src.config.settings import (
@@ -6,6 +9,7 @@ from src.config.settings import (
     APIFY_ACTORS,
     DEFAULT_COMMENTS_PER_POST,
     DEFAULT_RESULTS_PER_PAGE,
+    RAW_DATA_DIR,
 )
 
 
@@ -91,7 +95,48 @@ class SocialMediaScraper:
         try:
             run = self.client.actor(actor_id).call(run_input=run_input)
             items = list(self.client.dataset(run["defaultDatasetId"]).iterate_items())
+            
+            # Save raw data to file
+            self._save_raw_data(actor_id, items)
+            
             return items
         except Exception as e:
             print(f"Error running actor {actor_id}: {str(e)}")
             return []
+    
+    def _save_raw_data(
+        self,
+        actor_id: str,
+        data: List[Dict[str, Any]],
+    ) -> Optional[Path]:
+        """Save raw extraction data to JSON file.
+        
+        Args:
+            actor_id: The Apify actor ID used for extraction
+            data: List of extracted items
+            
+        Returns:
+            Path to saved file or None if save failed
+        """
+        try:
+            # Determine platform from actor_id
+            platform = "unknown"
+            for p, aid in APIFY_ACTORS.items():
+                if aid == actor_id:
+                    platform = p
+                    break
+            
+            # Create filename with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{platform}_raw_{timestamp}.json"
+            filepath = RAW_DATA_DIR / filename
+            
+            # Save data as JSON
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            
+            print(f"Raw data saved to: {filepath}")
+            return filepath
+        except Exception as e:
+            print(f"Error saving raw data: {str(e)}")
+            return None

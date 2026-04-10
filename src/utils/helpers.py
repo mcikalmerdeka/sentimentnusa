@@ -10,7 +10,7 @@ def validate_url(url: str, platform: str) -> bool:
     
     Args:
         url: URL to validate
-        platform: Platform name ('tiktok', 'instagram', or 'x')
+        platform: Platform name ('tiktok' or 'instagram')
         
     Returns:
         True if valid, False otherwise
@@ -24,8 +24,6 @@ def validate_url(url: str, platform: str) -> bool:
         return "tiktok.com" in url or "tiktok" in url
     elif platform == "instagram":
         return "instagram.com" in url or "instagr.am" in url
-    elif platform == "x":
-        return any(domain in url for domain in ["twitter.com", "x.com"])
     
     return False
 
@@ -138,8 +136,6 @@ def get_platform_from_url(url: str) -> Optional[str]:
         return "tiktok"
     elif "instagram.com" in url or "instagr.am" in url:
         return "instagram"
-    elif "twitter.com" in url or "x.com" in url:
-        return "x"
     
     return None
 
@@ -185,11 +181,11 @@ def create_sample_data() -> pd.DataFrame:
         ],
         "source": [
             # Sources corresponding to texts above
-            "tiktok", "tiktok", "instagram", "instagram", "x",
-            "tiktok", "instagram", "x", "tiktok", "instagram",
-            "instagram", "x", "tiktok", "instagram", "x",
-            "tiktok", "instagram", "x",
-            "instagram", "x", "tiktok", "instagram", "x",
+            "tiktok", "tiktok", "instagram", "instagram", "tiktok",
+            "tiktok", "instagram", "instagram", "tiktok", "instagram",
+            "instagram", "tiktok", "tiktok", "instagram", "instagram",
+            "tiktok", "instagram", "tiktok",
+            "instagram", "tiktok", "tiktok", "instagram", "tiktok",
             "tiktok", "instagram"
         ],
     }

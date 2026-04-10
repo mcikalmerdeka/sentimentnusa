@@ -25,15 +25,14 @@ APIFY_TOKEN = os.getenv("APIFY_TOKEN", "")
 # Apify Actor IDs for different platforms
 # These are public actors available on Apify Store
 APIFY_ACTORS = {
-    "tiktok": "GdWCkxBtKWOsKjdch",  # TikTok Comments Scraper
-    "instagram": "shu8hvrXbJbY3Eb9W",  # Instagram Comments Scraper
-    "x": "61RPP7dywgiy0JPD0",  # X (Twitter) Scraper
+    "tiktok": "BDec00yAmCm1QbMEI",  # TikTok Comments Scraper
+    "instagram": "SbK00X0JYCPblD2wp",  # Instagram Comments Scraper
 }
 
 # Scraping Configuration
-DEFAULT_COMMENTS_PER_POST = 50
+DEFAULT_COMMENTS_PER_POST = 10
 DEFAULT_MAX_REPLIES = 3
-DEFAULT_RESULTS_PER_PAGE = 5
+DEFAULT_RESULTS_PER_PAGE = 3
 
 # Sentiment Analysis Configuration
 SENTIMENT_MODEL = "w11wo/indonesian-roberta-base-sentiment-classifier"

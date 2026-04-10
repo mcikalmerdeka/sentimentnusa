@@ -1,7 +1,7 @@
 """Main application entry point for SentimentNusa.
 
 SentimentNusa is a sentiment analysis application that scrapes comments
-from TikTok, Instagram, and X (Twitter) and analyzes their sentiment.
+from TikTok or Instagram and analyzes their sentiment.
 """
 import os
 import sys
@@ -37,19 +37,17 @@ from src.utils.helpers import (
 
 
 def scrape_and_analyze(
-    tiktok_urls: str,
-    instagram_urls: str,
-    x_keywords: str,
+    platform: str,
+    urls: str,
     comments_per_post: int,
     progress=gr.Progress(),
 ) -> Tuple[str, pd.DataFrame, str, str, str, str]:
     """Scrape data from social media and perform sentiment analysis.
     
     Args:
-        tiktok_urls: Comma-separated TikTok post URLs
-        instagram_urls: Comma-separated Instagram post URLs
-        x_keywords: Comma-separated search queries for X
-        comments_per_post: Number of comments/tweets to extract per post
+        platform: Selected platform ('TikTok' or 'Instagram')
+        urls: Comma-separated post URLs for the selected platform
+        comments_per_post: Number of comments to extract per post
         progress: Gradio progress tracker
         
     Returns:
@@ -65,53 +63,48 @@ def scrape_and_analyze(
         visualizer = SentimentVisualizer()
         
         # Parse inputs
-        tiktok_url_list = [url.strip() for url in tiktok_urls.split(",") if url.strip()]
-        instagram_url_list = [url.strip() for url in instagram_urls.split(",") if url.strip()]
-        x_keyword_list = [kw.strip() for kw in x_keywords.split(",") if kw.strip()]
+        url_list = [url.strip() for url in urls.split(",") if url.strip()]
+        
+        if not url_list:
+            return "Error: No valid URLs provided.", pd.DataFrame(), None, None, None, None
         
         all_data = {}
+        platform_key = platform.lower()
         
-        # Scrape TikTok
-        if tiktok_url_list:
-            progress(0.2, desc="Scraping TikTok...")
-            # Validate URLs
-            valid_tiktok_urls = [url for url in tiktok_url_list if validate_url(url, "tiktok")]
-            if valid_tiktok_urls:
+        # Scrape based on selected platform
+        if platform_key == "tiktok":
+            progress(0.3, desc="Scraping TikTok...")
+            valid_urls = [url for url in url_list if validate_url(url, "tiktok")]
+            if valid_urls:
                 tiktok_data = scraper.scrape_tiktok(
-                    post_urls=valid_tiktok_urls,
+                    post_urls=valid_urls,
                     comments_per_post=comments_per_post,
                 )
                 all_data["tiktok"] = tiktok_data
-        
-        # Scrape Instagram
-        if instagram_url_list:
-            progress(0.4, desc="Scraping Instagram...")
-            valid_instagram_urls = [url for url in instagram_url_list if validate_url(url, "instagram")]
-            if valid_instagram_urls:
+            else:
+                return "Error: No valid TikTok URLs provided.", pd.DataFrame(), None, None, None, None
+                
+        elif platform_key == "instagram":
+            progress(0.3, desc="Scraping Instagram...")
+            valid_urls = [url for url in url_list if validate_url(url, "instagram")]
+            if valid_urls:
                 instagram_data = scraper.scrape_instagram(
-                    post_urls=valid_instagram_urls,
+                    post_urls=valid_urls,
                     comments_per_post=comments_per_post,
                 )
                 all_data["instagram"] = instagram_data
-        
-        # Scrape X
-        if x_keyword_list:
-            progress(0.6, desc="Scraping X (Twitter)...")
-            x_data = scraper.scrape_x(
-                search_queries=x_keyword_list,
-                max_tweets=comments_per_post,
-            )
-            all_data["x"] = x_data
+            else:
+                return "Error: No valid Instagram URLs provided.", pd.DataFrame(), None, None, None, None
         
         if not all_data:
-            return "Error: No valid URLs or keywords provided.", pd.DataFrame(), None, None, None, None
+            return "Error: No data retrieved. Please check your URLs.", pd.DataFrame(), None, None, None, None
         
         # Merge data
-        progress(0.7, desc="Processing data...")
+        progress(0.6, desc="Processing data...")
         df = merge_platform_data(all_data)
         
         if df.empty:
-            return "Error: No data retrieved. Please check your URLs/keywords.", pd.DataFrame(), None, None, None, None
+            return "Error: No data retrieved. Please check your URLs.", pd.DataFrame(), None, None, None, None
         
         # Preprocess
         progress(0.75, desc="Preprocessing text...")
@@ -243,13 +236,12 @@ def create_interface() -> gr.Blocks:
         gr.Markdown("""
         # 🎭 SentimentNusa
         ## Social Media Sentiment Analysis Tool
-        
-        Analyze sentiment from comments on **TikTok**, **Instagram**, and **X (Twitter)**.
-        
+
+        Analyze sentiment from comments on **TikTok** or **Instagram**.
+
         🔗 **Supported Formats:**
         - **TikTok**: `https://www.tiktok.com/@username/video/1234567890`
-        - **Instagram**: `https://www.instagram.com/p/ABC123DEF/`
-        - **X (Twitter)**: Search keywords or hashtags (e.g., `#indonesia`, `mbg`)
+        - **Instagram**: `https://www.instagram.com/p/ABC123DEF/` or `https://www.instagram.com/reel/ABC123DEF/`
         """)
         
         with gr.Tabs():
@@ -257,26 +249,20 @@ def create_interface() -> gr.Blocks:
             with gr.TabItem("🔍 Scrape & Analyze"):
                 with gr.Row():
                     with gr.Column(scale=1):
-                        gr.Markdown("### Input URLs/Keywords")
-                        
-                        tiktok_input = gr.Textbox(
-                            label="TikTok Post URLs",
-                            placeholder="https://www.tiktok.com/@username/video/1234567890, https://www.tiktok.com/@user2/video/0987654321",
+                        gr.Markdown("### Select Platform & Input URLs")
+
+                        platform_selector = gr.Radio(
+                            label="Select Platform",
+                            choices=["TikTok", "Instagram"],
+                            value="TikTok",
+                        )
+
+                        urls_input = gr.Textbox(
+                            label="Post URLs",
+                            placeholder="https://www.tiktok.com/@username/video/1234567890",
                             lines=3,
                         )
-                        
-                        instagram_input = gr.Textbox(
-                            label="Instagram Post URLs",
-                            placeholder="https://www.instagram.com/p/ABC123DEF/, https://www.instagram.com/p/XYZ789GHI/",
-                            lines=3,
-                        )
-                        
-                        x_input = gr.Textbox(
-                            label="X (Twitter) Search Keywords",
-                            placeholder="#indonesia, mbg, pemilu2024",
-                            lines=2,
-                        )
-                        
+
                         comments_count = gr.Slider(
                             label="Comments per Post",
                             minimum=10,
@@ -284,7 +270,7 @@ def create_interface() -> gr.Blocks:
                             value=100,
                             step=10,
                         )
-                        
+
                         analyze_btn = gr.Button("🚀 Start Analysis", variant="primary")
                     
                     with gr.Column(scale=2):
@@ -313,7 +299,7 @@ def create_interface() -> gr.Blocks:
                 # Event handlers
                 analyze_btn.click(
                     fn=scrape_and_analyze,
-                    inputs=[tiktok_input, instagram_input, x_input, comments_count],
+                    inputs=[platform_selector, urls_input, comments_count],
                     outputs=[status_output, results_table, dist_plot, wc_positive, wc_negative, wc_neutral],
                 )
                 
@@ -358,37 +344,40 @@ def create_interface() -> gr.Blocks:
             with gr.TabItem("ℹ️ About"):
                 gr.Markdown("""
                 ## About SentimentNusa
-                
-                **SentimentNusa** is an Indonesian-focused sentiment analysis tool that helps you understand 
+
+                **SentimentNusa** is an Indonesian-focused sentiment analysis tool that helps you understand
                 public opinion from social media comments.
-                
+
                 ### Features
-                
-                - 🔗 Multi-platform support (TikTok, Instagram, X)
+
+                - 🔗 Multi-platform support (TikTok, Instagram)
                 - 🧹 Automatic text preprocessing and normalization
                 - 🎯 Indonesian language sentiment analysis
                 - 📊 Rich visualizations and word clouds
                 - 💾 Export results to Excel
-                
+
                 ### How to Use
-                
+
                 1. **Setup**: Add your Apify API token to the `.env` file
-                2. **Input**: Enter post URLs for TikTok/Instagram or search keywords for X
-                3. **Analyze**: Click "Start Analysis" and wait for results
-                4. **Download**: Save your results to Excel for further analysis
-                
+                2. **Select**: Choose the platform (TikTok or Instagram)
+                3. **Input**: Enter post URLs for the selected platform
+                4. **Analyze**: Click "Start Analysis" and wait for results
+                5. **Download**: Save your results to Excel for further analysis
+
                 ### Technology Stack
-                
+
                 - **Gradio**: Web interface
                 - **Apify**: Social media scraping
                 - **Hugging Face Transformers**: Sentiment analysis
                 - **Indonesian RoBERTa**: Pre-trained sentiment model
-                
+
                 """)
         
         gr.Markdown("""
         ---
         💡 **Tip**: Make sure to add your Apify API token to the `.env` file before scraping real data.
+
+        **Note**: Each platform uses different Apify actors with specific configurations. Select the platform first, then enter the appropriate URLs.
         """)
     
     return app

@@ -1,6 +1,22 @@
+---
+title: SentimentNusa
+emoji: 🎭
+colorFrom: green
+colorTo: blue
+sdk: gradio
+sdk_version: "6.11.0"
+python_version: "3.14"
+app_file: app.py
+pinned: false
+---
+
+![Deploy to Hugging Face](https://github.com/mcikalmerdeka/sentimentnusa/actions/workflows/deploy.yml/badge.svg)
+
 # SentimentNusa
 
 **SentimentNusa** is a social media sentiment analysis tool designed for Indonesian language content. It scrapes comments from TikTok and Instagram posts, analyzes sentiment using state-of-the-art NLP models, and provides rich visualizations of the results.
+
+Try the live app on [Hugging Face Space](https://huggingface.co/spaces/mcikalmerdeka/sentiment-nusa)
 
 Python
 Gradio

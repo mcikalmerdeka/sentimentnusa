@@ -122,9 +122,6 @@ class SocialMediaScraper:
             run = self.client.actor(actor_id).call(run_input=run_input)
             items = list(self.client.dataset(run["defaultDatasetId"]).iterate_items())
             
-            # Save raw data to file
-            self._save_raw_data(actor_id, items)
-            
             return items
         except Exception as e:
             print(f"Error running actor {actor_id}: {str(e)}")

@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import gradio as gr
 import pandas as pd
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from src.core.scraper import SocialMediaScraper
 from src.core.preprocessor import TextPreprocessor
@@ -28,7 +28,8 @@ from src.core.sentiment_analyzer import SentimentAnalyzer
 from src.core.visualizer import SentimentVisualizer
 from src.utils.helpers import (
     validate_url,
-    save_to_excel,
+    save_df_to_temp_excel,
+    save_raw_data_to_temp_json,
     format_sentiment_results,
     merge_platform_data,
     get_platform_from_url,
@@ -41,7 +42,7 @@ def scrape_and_analyze(
     urls: str,
     comments_per_post: int,
     progress=gr.Progress(),
-) -> Tuple[str, pd.DataFrame, str, str, str, str]:
+) -> Tuple[str, pd.DataFrame, pd.DataFrame, str, str, str, str, List[Dict]]:
     """Scrape data from social media and perform sentiment analysis.
     
     Args:
@@ -51,8 +52,8 @@ def scrape_and_analyze(
         progress: Gradio progress tracker
         
     Returns:
-        Tuple of (status message, results DataFrame, distribution chart,
-                 positive wordcloud, negative wordcloud, neutral wordcloud)
+        Tuple of (status message, display DataFrame, full DataFrame, distribution chart,
+                 positive wordcloud, negative wordcloud, neutral wordcloud, raw_api_data)
     """
     try:
         # Initialize components
@@ -66,7 +67,7 @@ def scrape_and_analyze(
         url_list = [url.strip() for url in urls.split(",") if url.strip()]
         
         if not url_list:
-            return "Error: No valid URLs provided.", pd.DataFrame(), None, None, None, None
+            return "Error: No valid URLs provided.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
         
         all_data = {}
         platform_key = platform.lower()
@@ -82,7 +83,7 @@ def scrape_and_analyze(
                 )
                 all_data["tiktok"] = tiktok_data
             else:
-                return "Error: No valid TikTok URLs provided.", pd.DataFrame(), None, None, None, None
+                return "Error: No valid TikTok URLs provided.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
                 
         elif platform_key == "instagram":
             progress(0.3, desc="Scraping Instagram...")
@@ -94,7 +95,7 @@ def scrape_and_analyze(
                 )
                 all_data["instagram"] = instagram_data
             else:
-                return "Error: No valid Instagram URLs provided.", pd.DataFrame(), None, None, None, None
+                return "Error: No valid Instagram URLs provided.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
                 
         elif platform_key == "facebook":
             progress(0.3, desc="Scraping Facebook...")
@@ -106,17 +107,17 @@ def scrape_and_analyze(
                 )
                 all_data["facebook"] = facebook_data
             else:
-                return "Error: No valid Facebook URLs provided.", pd.DataFrame(), None, None, None, None
+                return "Error: No valid Facebook URLs provided.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
         
         if not all_data:
-            return "Error: No data retrieved. Please check your URLs.", pd.DataFrame(), None, None, None, None
+            return "Error: No data retrieved. Please check your URLs.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
         
         # Merge data
         progress(0.6, desc="Processing data...")
         df = merge_platform_data(all_data)
         
         if df.empty:
-            return "Error: No data retrieved. Please check your URLs.", pd.DataFrame(), None, None, None, None
+            return "Error: No data retrieved. Please check your URLs.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
         
         # Preprocess
         progress(0.75, desc="Preprocessing text...")
@@ -152,22 +153,29 @@ def scrape_and_analyze(
         if "source" in df.columns:
             display_cols.append("source")
         
+        # Flatten raw data from all platforms into a single list
+        raw_api_data = []
+        for platform_items in all_data.values():
+            raw_api_data.extend(platform_items)
+        
         return (
             status_msg,
             df[display_cols],
+            df,  # Full DataFrame for Excel download
             viz.get("sentiment_distribution"),
             viz.get("wordcloud_positive"),
             viz.get("wordcloud_negative"),
             viz.get("wordcloud_neutral"),
+            raw_api_data,  # Raw API data for JSON download
         )
         
     except Exception as e:
         import traceback
         error_msg = f"❌ Error: {str(e)}\n\n{traceback.format_exc()}"
-        return error_msg, pd.DataFrame(), None, None, None, None
+        return error_msg, pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
 
 
-def analyze_sample_data() -> Tuple[str, pd.DataFrame, str, str, str, str]:
+def analyze_sample_data() -> Tuple[str, pd.DataFrame, pd.DataFrame, str, str, str, str, List[Dict]]:
     """Analyze sample data for demonstration.
     
     Returns:
@@ -206,35 +214,56 @@ def analyze_sample_data() -> Tuple[str, pd.DataFrame, str, str, str, str]:
         if "source" in df.columns:
             display_cols.append("source")
         
+        # Sample data has no raw API data
+        raw_api_data = []
+        
         return (
             status_msg,
             df[display_cols],
+            df,  # Full DataFrame for Excel download
             viz.get("sentiment_distribution"),
             viz.get("wordcloud_positive"),
             viz.get("wordcloud_negative"),
             viz.get("wordcloud_neutral"),
+            raw_api_data,  # Empty for sample data
         )
         
     except Exception as e:
         import traceback
         error_msg = f"❌ Error: {str(e)}\n\n{traceback.format_exc()}"
-        return error_msg, pd.DataFrame(), None, None, None, None
+        return error_msg, pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
 
 
-def download_results(df: pd.DataFrame) -> str:
-    """Save results to Excel and return file path.
+def download_excel(df: pd.DataFrame):
+    """Prepare DataFrame for Excel download.
     
     Args:
-        df: DataFrame to save
+        df: DataFrame to download
         
     Returns:
-        Path to saved file
+        Path to temporary file for Gradio File component
     """
     if df.empty:
-        return "Error: No data to save"
+        return None
     
-    filepath = save_to_excel(df)
-    return f"✅ Results saved to: {filepath}"
+    filepath = save_df_to_temp_excel(df)
+    return filepath
+
+
+def download_json(raw_data: List[Dict]):
+    """Prepare raw API data for JSON download.
+    
+    Args:
+        raw_data: Raw API data from scraper
+        
+    Returns:
+        Path to temporary file for Gradio File component
+    """
+    if not raw_data:
+        return None
+    
+    filepath = save_raw_data_to_temp_json(raw_data)
+    return filepath
 
 
 # Create Gradio Interface
@@ -263,7 +292,7 @@ def create_interface() -> gr.Blocks:
             - 🧹 Automatic text preprocessing and normalization
             - 🎯 Indonesian language sentiment analysis
             - 📊 Rich visualizations and word clouds
-            - 💾 Export results to Excel
+            - 💾 Export results to Excel and JSON
             
             ### How to Use
             
@@ -271,7 +300,7 @@ def create_interface() -> gr.Blocks:
             2. **Select**: Choose the platform (TikTok, Instagram, or Facebook)
             3. **Input**: Enter post URLs for the selected platform (see supported formats below)
             4. **Analyze**: Click "Start Analysis" and wait for results
-            5. **Download**: Save your results to Excel for further analysis
+            5. **Download**: Download results as Excel (.xlsx) or JSON (.json) files
             
             ### 📎 Multiple URLs Input
             
@@ -351,27 +380,47 @@ def create_interface() -> gr.Blocks:
                 interactive=False,
             )
             
+            # Hidden states for downloads
+            full_data_state = gr.State(value=pd.DataFrame())
+            raw_data_state = gr.State(value=[])
+            
             with gr.Row():
-                download_btn = gr.Button("💾 Download Results to Excel", variant="secondary")
-                download_status = gr.Textbox(label="Download Status", show_label=False)
+                with gr.Column():
+                    gr.Markdown("### 📥 Download Results")
+                    with gr.Row():
+                        excel_download = gr.File(
+                            label="Excel (.xlsx)",
+                            interactive=False,
+                        )
+                        json_download = gr.File(
+                            label="JSON - Raw Data (.json)",
+                            interactive=False,
+                        )
         
         # Event handlers
         analyze_btn.click(
             fn=scrape_and_analyze,
             inputs=[platform_selector, urls_input, comments_count],
-            outputs=[status_output, results_table, dist_plot, wc_positive, wc_negative, wc_neutral],
+            outputs=[status_output, results_table, full_data_state, dist_plot, wc_positive, wc_negative, wc_neutral, raw_data_state],
         )
         
         sample_btn.click(
             fn=analyze_sample_data,
             inputs=[],
-            outputs=[status_output, results_table, dist_plot, wc_positive, wc_negative, wc_neutral],
+            outputs=[status_output, results_table, full_data_state, dist_plot, wc_positive, wc_negative, wc_neutral, raw_data_state],
         )
         
-        download_btn.click(
-            fn=download_results,
-            inputs=[results_table],
-            outputs=[download_status],
+        # Update download files when data changes
+        full_data_state.change(
+            fn=download_excel,
+            inputs=[full_data_state],
+            outputs=[excel_download],
+        )
+        
+        raw_data_state.change(
+            fn=download_json,
+            inputs=[raw_data_state],
+            outputs=[json_download],
         )
         
         # Footer info

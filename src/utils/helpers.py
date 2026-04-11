@@ -1,8 +1,10 @@
 """Utility helper functions for SentimentNusa."""
+import json
+import os
+import tempfile
 import pandas as pd
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-import os
 
 
 def validate_url(url: str, platform: str) -> bool:
@@ -28,6 +30,77 @@ def validate_url(url: str, platform: str) -> bool:
         return "facebook.com" in url or "fb.com" in url or "fb.watch" in url
     
     return False
+
+
+def save_df_to_temp_excel(
+    df: pd.DataFrame,
+    filename: Optional[str] = None,
+    platform: Optional[str] = None,
+) -> str:
+    """Save DataFrame to temporary Excel file for download.
+    
+    Args:
+        df: DataFrame to save
+        filename: Output filename (if None, generates timestamped name)
+        platform: Platform name for filename (e.g., 'tiktok', 'instagram', 'facebook')
+        
+    Returns:
+        Path to temporary file
+    """
+    if filename is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Determine platform from source column if not provided
+        if platform is None and "source" in df.columns and not df.empty:
+            platform = df["source"].iloc[0] if not df["source"].empty else "unknown"
+        if platform is None:
+            platform = "unknown"
+        filename = f"{platform}_sentiment_{timestamp}.xlsx"
+    
+    # Use temp directory (works in Hugging Face Spaces)
+    temp_dir = os.path.join(tempfile.gettempdir(), "sentimentnusa")
+    os.makedirs(temp_dir, exist_ok=True)
+    
+    filepath = os.path.join(temp_dir, filename)
+    df.to_excel(filepath, index=False)
+    
+    return filepath
+
+
+def save_raw_data_to_temp_json(
+    raw_data: List[Dict[str, Any]],
+    filename: Optional[str] = None,
+    platform: Optional[str] = None,
+) -> str:
+    """Save raw API data to temporary JSON file for download.
+    
+    Args:
+        raw_data: Raw API data from scraper (list of dictionaries)
+        filename: Output filename (if None, generates timestamped name)
+        platform: Platform name for filename (e.g., 'tiktok', 'instagram', 'facebook')
+        
+    Returns:
+        Path to temporary file
+    """
+    if filename is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Try to determine platform from data if not provided
+        if platform is None and raw_data:
+            first_item = raw_data[0]
+            # Try to get platform from various possible fields
+            platform = first_item.get("source") or first_item.get("platform") or "unknown"
+        if platform is None:
+            platform = "unknown"
+        filename = f"{platform}_raw_{timestamp}.json"
+    
+    # Use temp directory (works in Hugging Face Spaces)
+    temp_dir = os.path.join(tempfile.gettempdir(), "sentimentnusa")
+    os.makedirs(temp_dir, exist_ok=True)
+    
+    filepath = os.path.join(temp_dir, filename)
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(raw_data, f, ensure_ascii=False, indent=2)
+    
+    return filepath
 
 
 def save_to_excel(

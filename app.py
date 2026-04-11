@@ -239,160 +239,147 @@ def download_results(df: pd.DataFrame) -> str:
 
 # Create Gradio Interface
 def create_interface() -> gr.Blocks:
-    """Create the Gradio interface.
+    """Create the Gradio interface with sidebar layout.
     
     Returns:
         Gradio Blocks interface
     """
     with gr.Blocks(title="SentimentNusa - Social Media Sentiment Analysis") as app:
+        # Header
         gr.Markdown("""
         # 🎭 SentimentNusa
         ## Social Media Sentiment Analysis Tool
-
-        Analyze sentiment from comments on **TikTok**, **Instagram**, or **Facebook**.
-
-        🔗 **Supported Formats:**
-        - **TikTok**: `https://www.tiktok.com/@username/video/1234567890`
-        - **Instagram**: `https://www.instagram.com/p/ABC123DEF/` or `https://www.instagram.com/reel/ABC123DEF/`
-        - **Facebook**: `https://www.facebook.com/page/posts/post-id` or `https://fb.com/...`
         """)
         
-        with gr.Tabs():
-            # Tab 1: Scrape & Analyze
-            with gr.TabItem("🔍 Scrape & Analyze"):
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        gr.Markdown("### Select Platform & Input URLs")
-
-                        platform_selector = gr.Radio(
-                            label="Select Platform",
-                            choices=["TikTok", "Instagram", "Facebook"],
-                            value="TikTok",
-                        )
-
-                        urls_input = gr.Textbox(
-                            label="Post URLs",
-                            placeholder="https://www.tiktok.com/@username/video/1234567890",
-                            lines=3,
-                        )
-
-                        comments_count = gr.Slider(
-                            label="Comments per Post",
-                            minimum=10,
-                            maximum=500,
-                            value=100,
-                            step=10,
-                        )
-
-                        analyze_btn = gr.Button("🚀 Start Analysis", variant="primary")
-                    
-                    with gr.Column(scale=2):
-                        status_output = gr.Textbox(
-                            label="Status",
-                            value="Ready to analyze. Enter URLs/keywords and click 'Start Analysis'.",
-                            lines=10,
-                        )
-                        
-                        with gr.Row():
-                            dist_plot = gr.Image(label="📊 Sentiment Distribution")
-                        
-                        with gr.Row():
-                            wc_positive = gr.Image(label="😊 Positive Words")
-                            wc_negative = gr.Image(label="😞 Negative Words")
-                            wc_neutral = gr.Image(label="😐 Neutral Words")
-                        
-                        results_table = gr.DataFrame(
-                            label="📋 Detailed Results",
-                            interactive=False,
-                        )
-                        
-                        download_btn = gr.Button("💾 Download Results to Excel")
-                        download_status = gr.Textbox(label="Download Status")
-                
-                # Event handlers
-                analyze_btn.click(
-                    fn=scrape_and_analyze,
-                    inputs=[platform_selector, urls_input, comments_count],
-                    outputs=[status_output, results_table, dist_plot, wc_positive, wc_negative, wc_neutral],
-                )
-                
-                download_btn.click(
-                    fn=download_results,
-                    inputs=[results_table],
-                    outputs=[download_status],
-                )
+        # About Accordion
+        with gr.Accordion(label="ℹ️ About SentimentNusa", open=False):
+            gr.Markdown("""
+            **SentimentNusa** is an Indonesian-focused sentiment analysis tool that helps you understand
+            public opinion from social media comments.
             
-            # Tab 2: Sample Analysis
-            with gr.TabItem("📊 Try Sample"):
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        gr.Markdown("""
-                        ### Try with Sample Data
-                        
-                        Click the button below to analyze sample comments.
-                        This is useful for testing the system without needing API tokens.
-                        """)
-                        sample_btn = gr.Button("🎯 Analyze Sample Data", variant="secondary")
-                    
-                    with gr.Column(scale=2):
-                        sample_status = gr.Textbox(label="Status", lines=10)
-                        
-                        with gr.Row():
-                            sample_dist = gr.Image(label="📊 Sentiment Distribution")
-                        
-                        with gr.Row():
-                            sample_wc_pos = gr.Image(label="😊 Positive Words")
-                            sample_wc_neg = gr.Image(label="😞 Negative Words")
-                            sample_wc_neu = gr.Image(label="😐 Neutral Words")
-                        
-                        sample_table = gr.DataFrame(label="📋 Sample Results")
-                
-                sample_btn.click(
-                    fn=analyze_sample_data,
-                    inputs=[],
-                    outputs=[sample_status, sample_table, sample_dist, sample_wc_pos, sample_wc_neg, sample_wc_neu],
-                )
+            ### Features
             
-            # Tab 3: About
-            with gr.TabItem("ℹ️ About"):
-                gr.Markdown("""
-                ## About SentimentNusa
-
-                **SentimentNusa** is an Indonesian-focused sentiment analysis tool that helps you understand
-                public opinion from social media comments.
-
-                ### Features
-
-                - 🔗 Multi-platform support (TikTok, Instagram, Facebook)
-                - 🧹 Automatic text preprocessing and normalization
-                - 🎯 Indonesian language sentiment analysis
-                - 📊 Rich visualizations and word clouds
-                - 💾 Export results to Excel
-
-                ### How to Use
-
-                1. **Setup**: Add your Apify API token to the `.env` file
-                2. **Select**: Choose the platform (TikTok, Instagram, or Facebook)
-                3. **Input**: Enter post URLs for the selected platform
-                4. **Analyze**: Click "Start Analysis" and wait for results
-                5. **Download**: Save your results to Excel for further analysis
-
-                ### Technology Stack
-
-                - **Gradio**: Web interface
-                - **Apify**: Social media scraping
-                - **Hugging Face Transformers**: Sentiment analysis
-                - **Indonesian RoBERTa**: Pre-trained sentiment model
-
-                """)
+            - 🔗 Multi-platform support (TikTok, Instagram, Facebook)
+            - 🧹 Automatic text preprocessing and normalization
+            - 🎯 Indonesian language sentiment analysis
+            - 📊 Rich visualizations and word clouds
+            - 💾 Export results to Excel
+            
+            ### How to Use
+            
+            1. **Setup**: Add your Apify API token to the `.env` file
+            2. **Select**: Choose the platform (TikTok, Instagram, or Facebook)
+            3. **Input**: Enter post URLs for the selected platform (see supported formats below)
+            4. **Analyze**: Click "Start Analysis" and wait for results
+            5. **Download**: Save your results to Excel for further analysis
+            
+            ### 📎 Multiple URLs Input
+            
+            You can analyze multiple posts at once by entering multiple URLs separated by commas:
+            ```
+            https://www.tiktok.com/@user1/video/123, https://www.tiktok.com/@user2/video/456
+            ```
+            Or place each URL on a new line in the text box.
+            
+            ### Technology Stack
+            
+            - **Gradio**: Web interface
+            - **Apify**: Social media scraping
+            - **Hugging Face Transformers**: Sentiment analysis
+            - **Indonesian RoBERTa**: Pre-trained sentiment model
+            
+            ### 🔗 Supported Formats:
+            
+            - **TikTok**: `https://www.tiktok.com/@username/video/1234567890`
+            - **Instagram**: `https://www.instagram.com/p/ABC123DEF/` or `https://www.instagram.com/reel/ABC123DEF/`
+            - **Facebook**: `https://www.facebook.com/page/posts/post-id` or `https://fb.com/...`
+            """)
         
+        # Sidebar with controls
+        with gr.Sidebar(label="Controls", open=True):
+            gr.Markdown("### Select Platform & Input URLs")
+            
+            platform_selector = gr.Radio(
+                label="Select Platform",
+                choices=["TikTok", "Instagram", "Facebook"],
+                value="TikTok",
+            )
+            
+            urls_input = gr.Textbox(
+                label="Post URLs",
+                placeholder="https://www.tiktok.com/@username/video/1234567890",
+                lines=3,
+            )
+            
+            comments_count = gr.Slider(
+                label="Comments per Post",
+                minimum=10,
+                maximum=500,
+                value=100,
+                step=10,
+            )
+            
+            analyze_btn = gr.Button("🚀 Start Analysis", variant="primary", size="lg")
+            
+            # Add spacer to push sample button to bottom
+            gr.Markdown("<div style='flex-grow: 1;'></div>")
+            
+            # Sample data button at bottom of sidebar
+            gr.Markdown("---")
+            gr.Markdown("### Quick Test")
+            gr.Markdown("Try with sample data without needing API tokens.")
+            sample_btn = gr.Button("🎯 Try Sample Data", variant="secondary")
+        
+        # Main content area
+        with gr.Column():
+            status_output = gr.Textbox(
+                label="Status",
+                value="Ready to analyze. Configure settings in the sidebar and click 'Start Analysis'.",
+                lines=10,
+            )
+            
+            with gr.Row():
+                dist_plot = gr.Image(label="📊 Sentiment Distribution")
+            
+            with gr.Row():
+                wc_positive = gr.Image(label="😊 Positive Words")
+                wc_negative = gr.Image(label="😞 Negative Words")
+                wc_neutral = gr.Image(label="😐 Neutral Words")
+            
+            results_table = gr.DataFrame(
+                label="📋 Detailed Results",
+                interactive=False,
+            )
+            
+            with gr.Row():
+                download_btn = gr.Button("💾 Download Results to Excel", variant="secondary")
+                download_status = gr.Textbox(label="Download Status", show_label=False)
+        
+        # Event handlers
+        analyze_btn.click(
+            fn=scrape_and_analyze,
+            inputs=[platform_selector, urls_input, comments_count],
+            outputs=[status_output, results_table, dist_plot, wc_positive, wc_negative, wc_neutral],
+        )
+        
+        sample_btn.click(
+            fn=analyze_sample_data,
+            inputs=[],
+            outputs=[status_output, results_table, dist_plot, wc_positive, wc_negative, wc_neutral],
+        )
+        
+        download_btn.click(
+            fn=download_results,
+            inputs=[results_table],
+            outputs=[download_status],
+        )
+        
+        # Footer info
         gr.Markdown("""
         ---
         💡 **Tip**: Make sure to add your Apify API token to the `.env` file before scraping real data.
-
-        **Note**: Each platform uses different Apify actors with specific configurations. Select the platform first, then enter the appropriate URLs.
         
-        **Facebook Note**: The Facebook scraper uses the Apify Facebook Comments Scraper actor. You can configure the actor ID via the `APIFY_FACEBOOK_ACTOR` environment variable.
+        **Note**: Each platform uses different Apify actors with specific configurations. Select the platform first, then enter the appropriate URLs.
         """)
     
     return app

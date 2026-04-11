@@ -10,17 +10,13 @@ app_file: app.py
 pinned: false
 ---
 
-![Deploy to Hugging Face](https://github.com/mcikalmerdeka/sentimentnusa/actions/workflows/deploy.yml/badge.svg)
-
 # SentimentNusa
+
+![SentimentNusa](assets/SentimentNusa.png)
 
 **SentimentNusa** is a social media sentiment analysis tool designed for Indonesian language content. It scrapes comments from TikTok and Instagram posts, analyzes sentiment using state-of-the-art NLP models, and provides rich visualizations of the results.
 
 Try the live app on [Hugging Face Space](https://huggingface.co/spaces/mcikalmerdeka/sentiment-nusa)
-
-Python
-Gradio
-License
 
 ## Features
 
@@ -42,38 +38,46 @@ License
 ### Installation
 
 1. **Clone the repository**
-  ```bash
-   git clone https://github.com/mcikalmerdeka/sentimentnusa.git
-   cd sentimentnusa
-  ```
+
+```bash
+ git clone https://github.com/mcikalmerdeka/sentimentnusa.git
+ cd sentimentnusa
+```
+
 2. **Set up virtual environment**
-  ```bash
-   # Using uv (recommended)
-   uv venv
 
-   # Or using venv
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-  ```
+```bash
+ # Using uv (recommended)
+ uv venv
+
+ # Or using venv
+ python -m venv .venv
+ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
+
 3. **Install dependencies**
-  ```bash
-   # Using uv
-   uv pip install -r requirements.txt
 
-   # Or using pip
-   pip install -r requirements.txt
-  ```
+```bash
+ # Using uv
+ uv pip install -r requirements.txt
+
+ # Or using pip
+ pip install -r requirements.txt
+```
+
 4. **Configure environment variables**
-  Copy `.env.example` to `.env` and add your Apify token:
+   Copy `.env.example` to `.env` and add your Apify token:
    Edit the `.env` file:
    Get your token from: [https://console.apify.com/account/integrations](https://console.apify.com/account/integrations)
 5. **Run the application**
-  ```bash
-   uv run app.py
-   # Or: python app.py
-  ```
+
+```bash
+ uv run app.py
+ # Or: python app.py
+```
+
 6. **Open in browser**
-  Navigate to: [http://localhost:7860](http://localhost:7860)
+   Navigate to: [http://localhost:7860](http://localhost:7860)
 
 ## Usage Guide
 
@@ -81,8 +85,10 @@ License
 
 1. **Select Platform**: Choose either TikTok or Instagram from the platform selector
 2. **Enter Post URLs**: Input one or more post URLs (comma-separated)
-  - **TikTok**: `https://www.tiktok.com/@username/video/1234567890`
-  - **Instagram**: `https://www.instagram.com/p/ABC123DEF/` or `https://www.instagram.com/reel/ABC123DEF/`
+
+- **TikTok**: `https://www.tiktok.com/@username/video/1234567890`
+- **Instagram**: `https://www.instagram.com/p/ABC123DEF/` or `https://www.instagram.com/reel/ABC123DEF/`
+
 3. **Set Comments Limit**: Adjust the slider for number of comments to extract per post (10-500)
 4. **Start Analysis**: Click the "Start Analysis" button
 5. **View Results**: Review sentiment distribution, word clouds, and detailed data table
@@ -119,7 +125,6 @@ SentimentNusa/
 
 ## Technology Stack
 
-
 | Component           | Technology                                                                                                                      |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | **Web Framework**   | [Gradio](https://gradio.app/)                                                                                                   |
@@ -129,7 +134,6 @@ SentimentNusa/
 | **Visualization**   | [Matplotlib](https://matplotlib.org/) + [WordCloud](https://github.com/amueller/word_cloud)                                     |
 | **Data Processing** | [pandas](https://pandas.pydata.org/) + [NumPy](https://numpy.org/)                                                              |
 
-
 ## Text Preprocessing Pipeline
 
 1. **URL and Mention Removal**: Strips `http://...` and `@username`
@@ -137,10 +141,12 @@ SentimentNusa/
 3. **Special Character Removal**: Removes emojis and non-alphabetic characters
 4. **Repeated Character Limiting**: Normalizes words like "bagusss" to "bagus"
 5. **Slang Normalization**: Translates Indonesian slang:
-  - `gk`, `ga`, `gak` -> `tidak`
-  - `bgt`, `bgtt` -> `banget`
-  - `dg`, `dgn` -> `dengan`
-  - And more...
+
+- `gk`, `ga`, `gak` -> `tidak`
+- `bgt`, `bgtt` -> `banget`
+- `dg`, `dgn` -> `dengan`
+- And more...
+
 6. **Stopword Removal** (optional)
 
 ## Raw Data Storage
@@ -174,12 +180,10 @@ HUGGINGFACE_TOKEN=your_hf_token_here  # If you hit rate limits
 
 The application uses the following public Apify actors:
 
-
 | Platform  | Actor ID            | Description             |
 | --------- | ------------------- | ----------------------- |
 | TikTok    | `BDec00yAmCm1QbMEI` | TikTok Comments Scraper |
 | Instagram | `SbK00X0JYCPblD2wp` | Instagram Scraper       |
-
 
 These actor IDs can be customized via environment variables if needed.
 
@@ -202,13 +206,11 @@ Dominant Sentiment: positive
 
 ### Sample Analysis Results
 
-
 | Original Text                 | Cleaned Text                   | Sentiment | Source    |
 | ----------------------------- | ------------------------------ | --------- | --------- |
 | Bagus banget videonya!        | bagus banget videonya          | positive  | tiktok    |
 | Jelek banget, gak recommended | jelek banget tidak recommended | negative  | instagram |
 | Biasa aja sih                 | biasa saja                     | neutral   | tiktok    |
-
 
 ## Troubleshooting
 
@@ -260,4 +262,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 For questions or support, please open an issue on GitHub.
 
 ---
-

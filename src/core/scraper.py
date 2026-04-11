@@ -14,7 +14,7 @@ from src.config.settings import (
 
 
 class SocialMediaScraper:
-    """Scraper for extracting comments from TikTok and Instagram."""
+    """Scraper for extracting comments from TikTok, Instagram, and Facebook."""
     
     def __init__(self, token: Optional[str] = None):
         """Initialize the scraper with Apify token.
@@ -76,6 +76,32 @@ class SocialMediaScraper:
         }
         
         actor_id = APIFY_ACTORS["instagram"]
+        return self._run_actor(actor_id, run_input)
+    
+    def scrape_facebook(
+        self,
+        post_urls: List[str],
+        comments_per_post: int = DEFAULT_COMMENTS_PER_POST,
+        include_nested_comments: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """Scrape comments from Facebook posts.
+        
+        Args:
+            post_urls: List of Facebook post URLs
+            comments_per_post: Number of comments to extract per post
+            include_nested_comments: Whether to include nested/reply comments
+            
+        Returns:
+            List of comment data dictionaries
+        """
+        run_input = {
+            "startUrls": [{"url": url} for url in post_urls],
+            "resultsLimit": comments_per_post,
+            "includeNestedComments": include_nested_comments,
+            "viewOption": "RANKED_UNFILTERED",
+        }
+        
+        actor_id = APIFY_ACTORS["facebook"]
         return self._run_actor(actor_id, run_input)
     
     def _run_actor(

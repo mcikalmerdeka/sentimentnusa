@@ -10,7 +10,7 @@ def validate_url(url: str, platform: str) -> bool:
     
     Args:
         url: URL to validate
-        platform: Platform name ('tiktok' or 'instagram')
+        platform: Platform name ('tiktok', 'instagram', or 'facebook')
         
     Returns:
         True if valid, False otherwise
@@ -24,6 +24,8 @@ def validate_url(url: str, platform: str) -> bool:
         return "tiktok.com" in url or "tiktok" in url
     elif platform == "instagram":
         return "instagram.com" in url or "instagr.am" in url
+    elif platform == "facebook":
+        return "facebook.com" in url or "fb.com" in url or "fb.watch" in url
     
     return False
 
@@ -32,6 +34,7 @@ def save_to_excel(
     df: pd.DataFrame,
     filename: Optional[str] = None,
     output_dir: str = "data",
+    platform: Optional[str] = None,
 ) -> str:
     """Save DataFrame to Excel file.
     
@@ -39,6 +42,7 @@ def save_to_excel(
         df: DataFrame to save
         filename: Output filename (if None, generates timestamped name)
         output_dir: Output directory
+        platform: Platform name for filename (e.g., 'tiktok', 'instagram', 'facebook')
         
     Returns:
         Path to saved file
@@ -47,7 +51,12 @@ def save_to_excel(
     
     if filename is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"sentiment_analysis_{timestamp}.xlsx"
+        # Determine platform from source column if not provided
+        if platform is None and "source" in df.columns and not df.empty:
+            platform = df["source"].iloc[0] if not df["source"].empty else "unknown"
+        if platform is None:
+            platform = "unknown"
+        filename = f"{platform}_sentiment_{timestamp}.xlsx"
     
     filepath = os.path.join(output_dir, filename)
     df.to_excel(filepath, index=False)
@@ -136,6 +145,8 @@ def get_platform_from_url(url: str) -> Optional[str]:
         return "tiktok"
     elif "instagram.com" in url or "instagr.am" in url:
         return "instagram"
+    elif "facebook.com" in url or "fb.com" in url or "fb.watch" in url:
+        return "facebook"
     
     return None
 

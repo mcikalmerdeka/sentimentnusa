@@ -1,7 +1,7 @@
 """Main application entry point for SentimentNusa.
 
 SentimentNusa is a sentiment analysis application that scrapes comments
-from TikTok or Instagram and analyzes their sentiment.
+from TikTok, Instagram, or Facebook and analyzes their sentiment.
 """
 import os
 import sys
@@ -45,7 +45,7 @@ def scrape_and_analyze(
     """Scrape data from social media and perform sentiment analysis.
     
     Args:
-        platform: Selected platform ('TikTok' or 'Instagram')
+        platform: Selected platform ('TikTok', 'Instagram', or 'Facebook')
         urls: Comma-separated post URLs for the selected platform
         comments_per_post: Number of comments to extract per post
         progress: Gradio progress tracker
@@ -95,6 +95,18 @@ def scrape_and_analyze(
                 all_data["instagram"] = instagram_data
             else:
                 return "Error: No valid Instagram URLs provided.", pd.DataFrame(), None, None, None, None
+                
+        elif platform_key == "facebook":
+            progress(0.3, desc="Scraping Facebook...")
+            valid_urls = [url for url in url_list if validate_url(url, "facebook")]
+            if valid_urls:
+                facebook_data = scraper.scrape_facebook(
+                    post_urls=valid_urls,
+                    comments_per_post=comments_per_post,
+                )
+                all_data["facebook"] = facebook_data
+            else:
+                return "Error: No valid Facebook URLs provided.", pd.DataFrame(), None, None, None, None
         
         if not all_data:
             return "Error: No data retrieved. Please check your URLs.", pd.DataFrame(), None, None, None, None
@@ -237,11 +249,12 @@ def create_interface() -> gr.Blocks:
         # 🎭 SentimentNusa
         ## Social Media Sentiment Analysis Tool
 
-        Analyze sentiment from comments on **TikTok** or **Instagram**.
+        Analyze sentiment from comments on **TikTok**, **Instagram**, or **Facebook**.
 
         🔗 **Supported Formats:**
         - **TikTok**: `https://www.tiktok.com/@username/video/1234567890`
         - **Instagram**: `https://www.instagram.com/p/ABC123DEF/` or `https://www.instagram.com/reel/ABC123DEF/`
+        - **Facebook**: `https://www.facebook.com/page/posts/post-id` or `https://fb.com/...`
         """)
         
         with gr.Tabs():
@@ -253,7 +266,7 @@ def create_interface() -> gr.Blocks:
 
                         platform_selector = gr.Radio(
                             label="Select Platform",
-                            choices=["TikTok", "Instagram"],
+                            choices=["TikTok", "Instagram", "Facebook"],
                             value="TikTok",
                         )
 
@@ -350,7 +363,7 @@ def create_interface() -> gr.Blocks:
 
                 ### Features
 
-                - 🔗 Multi-platform support (TikTok, Instagram)
+                - 🔗 Multi-platform support (TikTok, Instagram, Facebook)
                 - 🧹 Automatic text preprocessing and normalization
                 - 🎯 Indonesian language sentiment analysis
                 - 📊 Rich visualizations and word clouds
@@ -359,7 +372,7 @@ def create_interface() -> gr.Blocks:
                 ### How to Use
 
                 1. **Setup**: Add your Apify API token to the `.env` file
-                2. **Select**: Choose the platform (TikTok or Instagram)
+                2. **Select**: Choose the platform (TikTok, Instagram, or Facebook)
                 3. **Input**: Enter post URLs for the selected platform
                 4. **Analyze**: Click "Start Analysis" and wait for results
                 5. **Download**: Save your results to Excel for further analysis
@@ -378,6 +391,8 @@ def create_interface() -> gr.Blocks:
         💡 **Tip**: Make sure to add your Apify API token to the `.env` file before scraping real data.
 
         **Note**: Each platform uses different Apify actors with specific configurations. Select the platform first, then enter the appropriate URLs.
+        
+        **Facebook Note**: The Facebook scraper uses the Apify Facebook Comments Scraper actor. You can configure the actor ID via the `APIFY_FACEBOOK_ACTOR` environment variable.
         """)
     
     return app

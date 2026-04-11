@@ -344,7 +344,7 @@ def create_interface() -> gr.Blocks:
                 label="Comments per Post",
                 minimum=10,
                 maximum=500,
-                value=100,
+                value=10,
                 step=10,
             )
             

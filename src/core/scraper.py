@@ -14,7 +14,7 @@ from src.config.settings import (
 
 
 class SocialMediaScraper:
-    """Scraper for extracting comments from TikTok, Instagram, and Facebook."""
+    """Scraper for extracting comments from TikTok, Instagram, Facebook, and X."""
     
     def __init__(self, token: Optional[str] = None):
         """Initialize the scraper with Apify token.
@@ -103,6 +103,34 @@ class SocialMediaScraper:
         
         actor_id = APIFY_ACTORS["facebook"]
         return self._run_actor(actor_id, run_input)
+    
+    def scrape_x(
+        self,
+        tweet_ids: List[str],
+        max_pages: int = 1,
+    ) -> List[Dict[str, Any]]:
+        """Scrape comments from X (Twitter) tweets.
+        
+        Args:
+            tweet_ids: List of X/Twitter tweet IDs (numeric IDs from tweet URLs)
+            max_pages: Maximum number of pages to scrape (1 page ≈ 35 comments)
+            
+        Returns:
+            List of comment data dictionaries
+        """
+        all_comments = []
+        
+        for tweet_id in tweet_ids:
+            run_input = {
+                "tweetId": tweet_id,
+                "maxPages": max_pages,
+            }
+            
+            actor_id = APIFY_ACTORS["x"]
+            comments = self._run_actor(actor_id, run_input)
+            all_comments.extend(comments)
+        
+        return all_comments
     
     def _run_actor(
         self,

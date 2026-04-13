@@ -12,7 +12,7 @@ def validate_url(url: str, platform: str) -> bool:
     
     Args:
         url: URL to validate
-        platform: Platform name ('tiktok', 'instagram', or 'facebook')
+        platform: Platform name ('tiktok', 'instagram', 'facebook', or 'x')
         
     Returns:
         True if valid, False otherwise
@@ -28,6 +28,8 @@ def validate_url(url: str, platform: str) -> bool:
         return "instagram.com" in url or "instagr.am" in url
     elif platform == "facebook":
         return "facebook.com" in url or "fb.com" in url or "fb.watch" in url
+    elif platform == "x":
+        return "x.com" in url or "twitter.com" in url
     
     return False
 
@@ -220,6 +222,35 @@ def get_platform_from_url(url: str) -> Optional[str]:
         return "instagram"
     elif "facebook.com" in url or "fb.com" in url or "fb.watch" in url:
         return "facebook"
+    elif "x.com" in url or "twitter.com" in url:
+        return "x"
+    
+    return None
+
+
+def extract_tweet_id(url: str) -> Optional[str]:
+    """Extract tweet ID from X/Twitter URL.
+    
+    Args:
+        url: X/Twitter post URL
+        
+    Returns:
+        Tweet ID or None if extraction fails
+    """
+    import re
+    
+    if not url or not isinstance(url, str):
+        return None
+    
+    url = url.strip()
+    
+    # Pattern for x.com and twitter.com URLs
+    # Matches: https://x.com/username/status/1234567890 or https://twitter.com/username/status/1234567890
+    pattern = r'(?:x\.com|twitter\.com)/[^/]+/status/(\d+)'
+    match = re.search(pattern, url)
+    
+    if match:
+        return match.group(1)
     
     return None
 

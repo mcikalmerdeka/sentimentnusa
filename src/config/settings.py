@@ -32,6 +32,7 @@ APIFY_ACTORS = {
     "tiktok": os.getenv("APIFY_TIKTOK_ACTOR", ""),
     "instagram": os.getenv("APIFY_INSTAGRAM_ACTOR", ""),
     "facebook": os.getenv("APIFY_FACEBOOK_ACTOR", ""),
+    "x": os.getenv("APIFY_X_ACTOR", ""),
 }
 
 # Scraping Configuration (default values)

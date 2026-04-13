@@ -34,6 +34,7 @@ from src.utils.helpers import (
     merge_platform_data,
     get_platform_from_url,
     create_sample_data,
+    extract_tweet_id,
 )
 
 
@@ -46,7 +47,7 @@ def scrape_and_analyze(
     """Scrape data from social media and perform sentiment analysis.
     
     Args:
-        platform: Selected platform ('TikTok', 'Instagram', or 'Facebook')
+        platform: Selected platform ('TikTok', 'Instagram', 'Facebook', or 'X')
         urls: Comma-separated post URLs for the selected platform
         comments_per_post: Number of comments to extract per post
         progress: Gradio progress tracker
@@ -108,6 +109,28 @@ def scrape_and_analyze(
                 all_data["facebook"] = facebook_data
             else:
                 return "Error: No valid Facebook URLs provided.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
+                
+        elif platform_key == "x":
+            progress(0.3, desc="Scraping X (Twitter)...")
+            valid_urls = [url for url in url_list if validate_url(url, "x")]
+            if valid_urls:
+                # Extract tweet IDs from URLs
+                tweet_ids = []
+                for url in valid_urls:
+                    tweet_id = extract_tweet_id(url)
+                    if tweet_id:
+                        tweet_ids.append(tweet_id)
+                
+                if tweet_ids:
+                    x_data = scraper.scrape_x(
+                        tweet_ids=tweet_ids,
+                        max_pages=max(1, comments_per_post // 35),  # Approximate pages based on comments limit
+                    )
+                    all_data["x"] = x_data
+                else:
+                    return "Error: Could not extract tweet IDs from URLs.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
+            else:
+                return "Error: No valid X URLs provided. URLs should be in format: https://x.com/username/status/1234567890", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
         
         if not all_data:
             return "Error: No data retrieved. Please check your URLs.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
@@ -288,7 +311,7 @@ def create_interface() -> gr.Blocks:
             
             ### Features
             
-            - 🔗 Multi-platform support (TikTok, Instagram, Facebook)
+            - 🔗 Multi-platform support (TikTok, Instagram, Facebook, X)
             - 🧹 Automatic text preprocessing and normalization
             - 🎯 Indonesian language sentiment analysis
             - 📊 Rich visualizations and word clouds
@@ -297,7 +320,7 @@ def create_interface() -> gr.Blocks:
             ### How to Use
             
             1. **Setup**: Add your Apify API token to the `.env` file
-            2. **Select**: Choose the platform (TikTok, Instagram, or Facebook)
+            2. **Select**: Choose the platform (TikTok, Instagram, Facebook, or X)
             3. **Input**: Enter post URLs for the selected platform (see supported formats below)
             4. **Analyze**: Click "Start Analysis" and wait for results
             5. **Download**: Download results as Excel (.xlsx) or JSON (.json) files
@@ -322,6 +345,7 @@ def create_interface() -> gr.Blocks:
             - **TikTok**: `https://www.tiktok.com/@username/video/1234567890`
             - **Instagram**: `https://www.instagram.com/p/ABC123DEF/` or `https://www.instagram.com/reel/ABC123DEF/`
             - **Facebook**: `https://www.facebook.com/page/posts/post-id` or `https://fb.com/...`
+            - **X (Twitter)**: `https://x.com/username/status/1234567890` or `https://twitter.com/username/status/1234567890`
             """)
         
         # Sidebar with controls
@@ -330,13 +354,13 @@ def create_interface() -> gr.Blocks:
             
             platform_selector = gr.Radio(
                 label="Select Platform",
-                choices=["TikTok", "Instagram", "Facebook"],
+                choices=["TikTok", "Instagram", "Facebook", "X"],
                 value="TikTok",
             )
             
             urls_input = gr.Textbox(
                 label="Post URLs",
-                placeholder="https://www.tiktok.com/@username/video/1234567890",
+                placeholder="https://www.tiktok.com/@username/video/1234567890 or https://x.com/username/status/1234567890",
                 lines=3,
             )
             
@@ -429,6 +453,8 @@ def create_interface() -> gr.Blocks:
         💡 **Tip**: Make sure to add your Apify API token to the `.env` file before scraping real data.
         
         **Note**: Each platform uses different Apify actors with specific configurations. Select the platform first, then enter the appropriate URLs.
+        
+        **X (Twitter) Note**: For X posts, the system extracts the tweet ID from the URL and scrapes replies/comments. Comments per post setting is approximate (1 page ≈ 35 comments).
         """)
     
     return app

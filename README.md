@@ -20,7 +20,7 @@ Try the live app on [Hugging Face Space](https://huggingface.co/spaces/mcikalmer
 
 ## Features
 
-- **Multi-Platform Support**: Analyze comments from TikTok and Instagram
+- **Multi-Platform Support**: Analyze comments from TikTok, Instagram, Facebook, and X (Twitter)
 - **Indonesian Language Optimized**: Uses `w11wo/indonesian-roberta-base-sentiment-classifier` for accurate sentiment detection
 - **Smart Text Preprocessing**: Automatic cleaning, normalization, and slang translation
 - **Raw Data Persistence**: Automatically saves raw extraction data for future reference
@@ -83,11 +83,13 @@ Try the live app on [Hugging Face Space](https://huggingface.co/spaces/mcikalmer
 
 ### Scraping and Analyzing Real Data
 
-1. **Select Platform**: Choose either TikTok or Instagram from the platform selector
+1. **Select Platform**: Choose either TikTok, Instagram, Facebook, or X from the platform selector
 2. **Enter Post URLs**: Input one or more post URLs (comma-separated)
 
 - **TikTok**: `https://www.tiktok.com/@username/video/1234567890`
 - **Instagram**: `https://www.instagram.com/p/ABC123DEF/` or `https://www.instagram.com/reel/ABC123DEF/`
+- **Facebook**: `https://www.facebook.com/page/posts/post-id` or `https://fb.com/...`
+- **X (Twitter)**: `https://x.com/username/status/1234567890` or `https://twitter.com/username/status/1234567890`
 
 3. **Set Comments Limit**: Adjust the slider for number of comments to extract per post (10-500)
 4. **Start Analysis**: Click the "Start Analysis" button
@@ -171,6 +173,7 @@ APIFY_TOKEN=your_apify_token_here
 # Apify Actor IDs (optional - uses defaults if not set)
 APIFY_TIKTOK_ACTOR=BDec00yAmCm1QbMEI
 APIFY_INSTAGRAM_ACTOR=SbK00X0JYCPblD2wp
+APIFY_X_ACTOR=JxQa1hxyiV7DNvz8h
 
 # Optional
 HUGGINGFACE_TOKEN=your_hf_token_here  # If you hit rate limits
@@ -184,8 +187,17 @@ The application uses the following public Apify actors:
 | --------- | ------------------- | ----------------------- |
 | TikTok    | `BDec00yAmCm1QbMEI` | TikTok Comments Scraper |
 | Instagram | `SbK00X0JYCPblD2wp` | Instagram Scraper       |
+| X (Twitter)| `JxQa1hxyiV7DNvz8h` | X/Tweet Comments Scraper|
 
 These actor IDs can be customized via environment variables if needed.
+
+### X (Twitter) Specific Notes
+
+For X posts, the system extracts the tweet ID from the URL and scrapes replies/comments using the Apify actor. The comments per post setting is approximate, as the X actor uses pagination (1 page ≈ 35 comments). To get more comments, increase the comments per post slider - the system will automatically calculate the required number of pages.
+
+Supported X URL formats:
+- `https://x.com/username/status/1234567890`
+- `https://twitter.com/username/status/1234567890`
 
 ## Example Output
 
@@ -236,6 +248,8 @@ Ensure your URLs match the expected format:
 
 - TikTok URLs must contain `tiktok.com`
 - Instagram URLs must contain `instagram.com` or `instagr.am`
+- Facebook URLs must contain `facebook.com`, `fb.com`, or `fb.watch`
+- X URLs must contain `x.com` or `twitter.com`
 
 ## Contributing
 

@@ -42,24 +42,41 @@ def scrape_and_analyze(
     platform: str,
     urls: str,
     comments_per_post: int,
+    apify_token: str,
     progress=gr.Progress(),
 ) -> Tuple[str, pd.DataFrame, pd.DataFrame, str, str, str, str, List[Dict]]:
     """Scrape data from social media and perform sentiment analysis.
-    
+
     Args:
         platform: Selected platform ('TikTok', 'Instagram', 'Facebook', or 'X')
         urls: Comma-separated post URLs for the selected platform
         comments_per_post: Number of comments to extract per post
+        apify_token: Apify API token for scraping
         progress: Gradio progress tracker
-        
+
     Returns:
         Tuple of (status message, display DataFrame, full DataFrame, distribution chart,
                  positive wordcloud, negative wordcloud, neutral wordcloud, raw_api_data)
     """
     try:
+        # Validate Apify token
+        if not apify_token or not apify_token.strip():
+            return (
+                "❌ Error: Apify API token is required.\n\n"
+                "Please enter your Apify API token in the sidebar.\n"
+                "Get your free token at: https://console.apify.com/settings/integrations",
+                pd.DataFrame(),
+                pd.DataFrame(),
+                None,
+                None,
+                None,
+                None,
+                []
+            )
+
         # Initialize components
         progress(0.1, desc="Initializing scraper...")
-        scraper = SocialMediaScraper()
+        scraper = SocialMediaScraper(token=apify_token.strip())
         preprocessor = TextPreprocessor()
         analyzer = SentimentAnalyzer()
         visualizer = SentimentVisualizer()
@@ -318,8 +335,8 @@ def create_interface() -> gr.Blocks:
             - 💾 Export results to Excel and JSON
             
             ### How to Use
-            
-            1. **Setup**: Add your Apify API token to the `.env` file
+
+            1. **Setup**: Enter your Apify API token in the sidebar (get one free at [apify.com](https://console.apify.com/settings/integrations))
             2. **Select**: Choose the platform (TikTok, Instagram, Facebook, or X)
             3. **Input**: Enter post URLs for the selected platform (see supported formats below)
             4. **Analyze**: Click "Start Analysis" and wait for results
@@ -350,20 +367,53 @@ def create_interface() -> gr.Blocks:
         
         # Sidebar with controls
         with gr.Sidebar(label="Controls", open=True):
+            gr.Markdown("### API Configuration")
+
+            apify_token_input = gr.Textbox(
+                label="Apify API Token",
+                placeholder="apify_api_xxxxxxxxxxxx",
+                type="password",
+                lines=1,
+                info="Your personal Apify API token for scraping",
+            )
+
+            with gr.Accordion(label="🔑 How to get your Apify token", open=False):
+                gr.Markdown("""
+                ### Getting Your Apify API Token
+
+                1. **Create a free Apify account** at [https://console.apify.com/sign-up](https://console.apify.com/sign-up)
+                2. **Go to Settings** → [Integrations](https://console.apify.com/settings/integrations)
+                3. **Copy your API token** (starts with `apify_api_`)
+                4. **Paste it above** and start analyzing!
+
+                ### Why do I need this?
+
+                - Apify provides the scraping infrastructure for social media data
+                - Each user needs their own token for security and rate limits
+                - Your token is **never stored** - it only exists during your session
+
+                ### Free Tier Limits
+
+                - Apify offers a **free tier** with $5 credit monthly
+                - This is enough for hundreds of comments
+                - Perfect for testing and small projects
+                """)
+
+            gr.Markdown("---")
             gr.Markdown("### Select Platform & Input URLs")
-            
+
             platform_selector = gr.Radio(
                 label="Select Platform",
                 choices=["TikTok", "Instagram", "Facebook", "X"],
                 value="TikTok",
             )
-            
+
             urls_input = gr.Textbox(
                 label="Post URLs",
                 placeholder="https://www.tiktok.com/@username/video/1234567890 or https://x.com/username/status/1234567890",
                 lines=3,
             )
-            
+
             comments_count = gr.Slider(
                 label="Comments per Post",
                 minimum=10,
@@ -371,12 +421,12 @@ def create_interface() -> gr.Blocks:
                 value=10,
                 step=10,
             )
-            
+
             analyze_btn = gr.Button("🚀 Start Analysis", variant="primary", size="lg")
-            
+
             # Add spacer to push sample button to bottom
             gr.Markdown("<div style='flex-grow: 1;'></div>")
-            
+
             # Sample data button at bottom of sidebar
             gr.Markdown("---")
             gr.Markdown("### Quick Test")
@@ -424,7 +474,7 @@ def create_interface() -> gr.Blocks:
         # Event handlers
         analyze_btn.click(
             fn=scrape_and_analyze,
-            inputs=[platform_selector, urls_input, comments_count],
+            inputs=[platform_selector, urls_input, comments_count, apify_token_input],
             outputs=[status_output, results_table, full_data_state, dist_plot, wc_positive, wc_negative, wc_neutral, raw_data_state],
         )
         
@@ -450,11 +500,13 @@ def create_interface() -> gr.Blocks:
         # Footer info
         gr.Markdown("""
         ---
-        💡 **Tip**: Make sure to add your Apify API token to the `.env` file before scraping real data.
-        
+        💡 **Tip**: Enter your Apify API token in the sidebar to start scraping real data. Don't have one? [Get a free token here](https://console.apify.com/settings/integrations).
+
         **Note**: Each platform uses different Apify actors with specific configurations. Select the platform first, then enter the appropriate URLs.
-        
+
         **X (Twitter) Note**: For X posts, the system extracts the tweet ID from the URL and scrapes replies/comments. Comments per post setting is approximate (1 page ≈ 35 comments).
+
+        **Privacy**: Your API token is never stored or logged. It only exists during your session.
         """)
     
     return app

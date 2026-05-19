@@ -34,7 +34,6 @@ from src.utils.helpers import (
     merge_platform_data,
     get_platform_from_url,
     create_sample_data,
-    extract_tweet_id,
 )
 
 
@@ -49,8 +48,8 @@ def scrape_and_analyze(
 
     Args:
         platform: Selected platform ('TikTok', 'Instagram', 'Facebook', or 'X')
-        urls: Comma-separated post URLs for the selected platform
-        comments_per_post: Number of comments to extract per post
+        urls: Comma-separated post URLs for TikTok/Instagram/Facebook, or search keywords for X
+        comments_per_post: Number of comments to extract per post (or tweets for X)
         apify_token: Apify API token for scraping
         progress: Gradio progress tracker
 
@@ -128,26 +127,18 @@ def scrape_and_analyze(
                 return "Error: No valid Facebook URLs provided.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
                 
         elif platform_key == "x":
-            progress(0.3, desc="Scraping X (Twitter)...")
-            valid_urls = [url for url in url_list if validate_url(url, "x")]
-            if valid_urls:
-                # Extract tweet IDs from URLs
-                tweet_ids = []
-                for url in valid_urls:
-                    tweet_id = extract_tweet_id(url)
-                    if tweet_id:
-                        tweet_ids.append(tweet_id)
-                
-                if tweet_ids:
-                    x_data = scraper.scrape_x(
-                        tweet_ids=tweet_ids,
-                        max_pages=max(1, comments_per_post // 35),  # Approximate pages based on comments limit
-                    )
-                    all_data["x"] = x_data
-                else:
-                    return "Error: Could not extract tweet IDs from URLs.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
+            progress(0.3, desc="Searching X (Twitter)...")
+            # Parse search terms from input (comma-separated)
+            search_terms = [term.strip() for term in urls.split(",") if term.strip()]
+
+            if search_terms:
+                x_data = scraper.scrape_x(
+                    search_terms=search_terms,
+                    max_items=comments_per_post,
+                )
+                all_data["x"] = x_data
             else:
-                return "Error: No valid X URLs provided. URLs should be in format: https://x.com/username/status/1234567890", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
+                return "Error: No search terms provided. Enter keywords to search for on X.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
         
         if not all_data:
             return "Error: No data retrieved. Please check your URLs.", pd.DataFrame(), pd.DataFrame(), None, None, None, None, []
@@ -362,13 +353,13 @@ def create_interface() -> gr.Blocks:
             - **TikTok**: `https://www.tiktok.com/@username/video/1234567890`
             - **Instagram**: `https://www.instagram.com/p/ABC123DEF/` or `https://www.instagram.com/reel/ABC123DEF/`
             - **Facebook**: `https://www.facebook.com/page/posts/post-id` or `https://fb.com/...`
-            - **X (Twitter)**: `https://x.com/username/status/1234567890` or `https://twitter.com/username/status/1234567890`
+            - **X (Twitter)**: Enter search keywords (e.g., `prabowo`, `makan bergizi gratis`)
             """)
         
         # Sidebar with controls
         with gr.Sidebar(label="Controls", open=True):
             gr.Markdown("### API Configuration")
-
+            
             apify_token_input = gr.Textbox(
                 label="Apify API Token",
                 placeholder="apify_api_xxxxxxxxxxxx",
@@ -409,8 +400,8 @@ def create_interface() -> gr.Blocks:
             )
 
             urls_input = gr.Textbox(
-                label="Post URLs",
-                placeholder="https://www.tiktok.com/@username/video/1234567890 or https://x.com/username/status/1234567890",
+                label="Post URLs / Search Terms",
+                placeholder="For TikTok/Instagram/Facebook: Enter post URLs. For X: Enter search keywords (e.g., prabowo, makan bergizi gratis)",
                 lines=3,
             )
 
@@ -504,7 +495,7 @@ def create_interface() -> gr.Blocks:
 
         **Note**: Each platform uses different Apify actors with specific configurations. Select the platform first, then enter the appropriate URLs.
 
-        **X (Twitter) Note**: For X posts, the system extracts the tweet ID from the URL and scrapes replies/comments. Comments per post setting is approximate (1 page ≈ 35 comments).
+        **X (Twitter) Note**: For X, enter search keywords instead of URLs. The system searches for tweets matching your keywords and analyzes their sentiment. The "Comments per Post" slider controls how many tweets to retrieve.
 
         **Privacy**: Your API token is never stored or logged. It only exists during your session.
         """)

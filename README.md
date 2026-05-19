@@ -173,7 +173,7 @@ APIFY_TOKEN=your_apify_token_here
 # Apify Actor IDs (optional - uses defaults if not set)
 APIFY_TIKTOK_ACTOR=BDec00yAmCm1QbMEI
 APIFY_INSTAGRAM_ACTOR=SbK00X0JYCPblD2wp
-APIFY_X_ACTOR=JxQa1hxyiV7DNvz8h
+APIFY_X_ACTOR=CJdippxWmn9uRfooo
 
 # Optional
 HUGGINGFACE_TOKEN=your_hf_token_here  # If you hit rate limits
@@ -187,17 +187,16 @@ The application uses the following public Apify actors:
 | --------- | ------------------- | ----------------------- |
 | TikTok    | `BDec00yAmCm1QbMEI` | TikTok Comments Scraper |
 | Instagram | `SbK00X0JYCPblD2wp` | Instagram Scraper       |
-| X (Twitter)| `JxQa1hxyiV7DNvz8h` | X/Tweet Comments Scraper|
+| X (Twitter)| `CJdippxWmn9uRfooo` | X/Tweet Search Scraper|
 
 These actor IDs can be customized via environment variables if needed.
 
 ### X (Twitter) Specific Notes
 
-For X posts, the system extracts the tweet ID from the URL and scrapes replies/comments using the Apify actor. The comments per post setting is approximate, as the X actor uses pagination (1 page ≈ 35 comments). To get more comments, increase the comments per post slider - the system will automatically calculate the required number of pages.
+For X, the system uses a search-based actor to find tweets matching your keywords. Enter search terms (e.g., `prabowo`, `makan bergizi gratis`) instead of URLs. The "Comments per Post" slider controls how many tweets to retrieve (default: up to 500).
 
-Supported X URL formats:
-- `https://x.com/username/status/1234567890`
-- `https://twitter.com/username/status/1234567890`
+Supported X input format:
+- Enter search keywords separated by commas: `prabowo, makan bergizi gratis`
 
 ## Example Output
 

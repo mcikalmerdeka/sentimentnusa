@@ -32,8 +32,12 @@ APIFY_ACTORS = {
     "tiktok": os.getenv("APIFY_TIKTOK_ACTOR", ""),
     "instagram": os.getenv("APIFY_INSTAGRAM_ACTOR", ""),
     "facebook": os.getenv("APIFY_FACEBOOK_ACTOR", ""),
-    "x": os.getenv("APIFY_X_ACTOR", ""),
+    "x": os.getenv("APIFY_X_ACTOR", "CJdippxWmn9uRfooo"),
 }
+
+# X (Twitter) Search Configuration
+DEFAULT_X_SEARCH_LANG = "in"  # Indonesian language code
+DEFAULT_X_MAX_ITEMS = 100
 
 # Scraping Configuration (default values)
 DEFAULT_COMMENTS_PER_POST = 10

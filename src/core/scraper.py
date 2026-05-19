@@ -9,6 +9,8 @@ from src.config.settings import (
     APIFY_ACTORS,
     DEFAULT_COMMENTS_PER_POST,
     DEFAULT_RESULTS_PER_PAGE,
+    DEFAULT_X_MAX_ITEMS,
+    DEFAULT_X_SEARCH_LANG,
     RAW_DATA_DIR,
 )
 
@@ -106,31 +108,51 @@ class SocialMediaScraper:
     
     def scrape_x(
         self,
-        tweet_ids: List[str],
-        max_pages: int = 1,
+        search_terms: List[str],
+        max_items: int = DEFAULT_X_MAX_ITEMS,
+        lang: str = DEFAULT_X_SEARCH_LANG,
     ) -> List[Dict[str, Any]]:
-        """Scrape comments from X (Twitter) tweets.
-        
+        """Search and scrape tweets from X (Twitter) using the Apify search actor.
+
         Args:
-            tweet_ids: List of X/Twitter tweet IDs (numeric IDs from tweet URLs)
-            max_pages: Maximum number of pages to scrape (1 page ≈ 35 comments)
-            
+            search_terms: List of search terms/keywords to search for on X
+            max_items: Maximum number of tweets to retrieve
+            lang: Language code for filtering tweets (e.g., 'in' for Indonesian)
+
         Returns:
-            List of comment data dictionaries
+            List of tweet data dictionaries
         """
-        all_comments = []
-        
-        for tweet_id in tweet_ids:
-            run_input = {
-                "tweetId": tweet_id,
-                "maxPages": max_pages,
-            }
-            
-            actor_id = APIFY_ACTORS["x"]
-            comments = self._run_actor(actor_id, run_input)
-            all_comments.extend(comments)
-        
-        return all_comments
+        if not search_terms:
+            return []
+
+        run_input = {
+            "searchTerms": search_terms,
+            "maxItems": max_items,
+            "lang": lang,
+            "filter:blue_verified": False,
+            "filter:consumer_video": False,
+            "filter:has_engagement": False,
+            "filter:hashtags": False,
+            "filter:images": False,
+            "filter:links": False,
+            "filter:media": False,
+            "filter:mentions": False,
+            "filter:native_video": False,
+            "filter:nativeretweets": False,
+            "filter:news": False,
+            "filter:pro_video": False,
+            "filter:quote": False,
+            "filter:replies": False,
+            "filter:safe": False,
+            "filter:spaces": False,
+            "filter:twimg": False,
+            "filter:videos": False,
+            "filter:vine": False,
+            "include:nativeretweets": False,
+        }
+
+        actor_id = APIFY_ACTORS["x"]
+        return self._run_actor(actor_id, run_input)
     
     def _run_actor(
         self,
